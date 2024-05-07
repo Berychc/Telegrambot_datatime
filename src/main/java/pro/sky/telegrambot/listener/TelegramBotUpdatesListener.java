@@ -65,27 +65,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         helpCommand(chatId);
                         logger.info("Вызвана кмоанда - /help");
                         break;
-                    default:
-                        String[] parts = message.split("_", 3); // Разбиваем сообщение на три части
-                        if (parts.length == 3) {
-                            String dateAndTime = parts[0] + " " + parts[1];
-                            String notificationText = parts[2];
-
-                            // Создаем объект LocalDateTime из строки dateAndTime
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern
-                                    ("dd.MM.yyyy_HH:mm"); // указываем формат даты и времени
-                            LocalDateTime dateTime = LocalDateTime.parse(dateAndTime, formatter);
-
-                            // Объединяем дату, время и текст сообщения для передачи в метод
-                            String reminderText = dateTime + " " + notificationText;
-
-                            // Вызываем метод для обработки уведомления
-                            parseAndSaveReminder(chatId, reminderText);
-                            logger.info("Вызвана команда добавления");
-                        } else {
-                            sendMessage(chatId, "Некорректный формат команды добавления");
-                            logger.info("Не сохранилось!");
-                        }
+                    default: parseAndSaveReminder(chatId, message);
                 }
             }
         });
@@ -99,7 +79,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             String data = matcher.group(1);
             String text = matcher.group(3);
 
-            LocalDateTime dataTime = LocalDateTime.parse(data, DateTimeFormatter.ofPattern("dd.MM.yyyy_HH:mm"));
+            LocalDateTime dataTime = LocalDateTime.parse(data, DateTimeFormatter.ofPattern
+                    ("dd.MM.yyyy HH:mm"));
 
             NotificationTask notification = new NotificationTask();
             notification.setDataTime(dataTime);
