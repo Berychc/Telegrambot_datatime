@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.sky.telegrambot.model.Notification_task;
+import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NTRepository;
 
 import javax.annotation.PostConstruct;
@@ -28,7 +28,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     // Create a new constants for TelegramBot
     private static final String START = "/start";
     private static final String HELP = "/help";
-    private static final String SEND = "/send";
 
     @Autowired
     private TelegramBot bot;
@@ -51,9 +50,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 long chatId = update.message().chat().id();
 
                 LocalDateTime currentMinute = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-                List<Notification_task> tasks = repository.findByDataTime(currentMinute);
+                List<NotificationTask> tasks = repository.findByDataTime(currentMinute);
 
-                for (Notification_task task : tasks) {
+                for (NotificationTask task : tasks) {
                     sendMessage(task.getChatId(), task.getText());
                 }
 
@@ -62,22 +61,31 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         startCommand(chatId, message);
                         logger.info("Вызвана команда - /start");
                         break;
-                    case SEND:
-                        String[] parts = message.split("\\s", 3); // Разбиваем сообщение на три части
-                        if (parts.length == 3) {
-                            parseAndSaveReminder(chatId, parts[1] + " " + parts[2]);
-                            logger.info("Вызвана команда - /send");
-                        } else {
-                            sendMessage(chatId, "Некорректный формат команды /send");
-                            logger.info("Не сохранилось!");
-                        }
-                        break;
                     case HELP:
                         helpCommand(chatId);
                         logger.info("Вызвана кмоанда - /help");
                         break;
-                    default: defaultMessage(chatId);
-                        logger.info("Вызван ? Вызвана - неизвествная команда/текст");
+                    default:
+                        String[] parts = message.split("_", 3); // Разбиваем сообщение на три части
+                        if (parts.length == 3) {
+                            String dateAndTime = parts[0] + " " + parts[1];
+                            String notificationText = parts[2];
+
+                            // Создаем объект LocalDateTime из строки dateAndTime
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern
+                                    ("dd.MM.yyyy_HH:mm"); // указываем формат даты и времени
+                            LocalDateTime dateTime = LocalDateTime.parse(dateAndTime, formatter);
+
+                            // Объединяем дату, время и текст сообщения для передачи в метод
+                            String reminderText = dateTime + " " + notificationText;
+
+                            // Вызываем метод для обработки уведомления
+                            parseAndSaveReminder(chatId, reminderText);
+                            logger.info("Вызвана команда добавления");
+                        } else {
+                            sendMessage(chatId, "Некорректный формат команды добавления");
+                            logger.info("Не сохранилось!");
+                        }
                 }
             }
         });
@@ -85,16 +93,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     public void parseAndSaveReminder(long chatId,String message) {
-        Pattern pattern = Pattern.compile("[0-9.:\\s]{16}(\\s)([\\W+]+)");
+        Pattern pattern = Pattern.compile("([0-9.:\\s]{16})(\\s)([\\W+]+)");
         Matcher matcher = pattern.matcher(message);
         if (matcher.matches()) {
-            String data = matcher.group(0);
-            String text = matcher.group(2);
+            String data = matcher.group(1);
+            String text = matcher.group(3);
 
-            LocalDateTime dataTime = LocalDateTime.parse
-                    (data, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            LocalDateTime dataTime = LocalDateTime.parse(data, DateTimeFormatter.ofPattern("dd.MM.yyyy_HH:mm"));
 
-            Notification_task notification = new Notification_task();
+            NotificationTask notification = new NotificationTask();
             notification.setDataTime(dataTime);
             notification.setText(text);
             notification.setChatId(chatId);
@@ -108,12 +115,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0/1 * * * *")
     public void processNotifications() {
         LocalDateTime currentMinute = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-        List<Notification_task> tasks = repository.findByDataTime(currentMinute);
+        List<NotificationTask> tasks = repository.findByDataTime(currentMinute);
 
-        for (Notification_task task : tasks) {
+        for (NotificationTask task : tasks) {
             sendMessage(task.getChatId(), task.getText());
         }
     }
@@ -121,7 +128,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     // Create commands for TelegramBot
 
     public void startCommand(long chatId, String userName) {
-        String text = "Добро пожаловать в бот , %s! \uD83D\uDE07\n" +
+        String text = "Добро пожаловать в бот , %s! \n" +
                 "\nЭти команды я использую!" +
                 "\n /help";
 

@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "notification_task")
-public class Notification_task {
+@Table(name = "notificationTask")
+public class NotificationTask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,10 +22,10 @@ public class Notification_task {
     @Column(name = "data_time")
     private LocalDateTime dataTime;
 
-    public Notification_task() {
+    public NotificationTask() {
     }
 
-    public Notification_task(Long id, Long chatId, String text, LocalDateTime dataTime) {
+    public NotificationTask(Long id, Long chatId, String text, LocalDateTime dataTime) {
         this.id = id;
         this.chatId = chatId;
         this.text = text;
@@ -69,7 +69,7 @@ public class Notification_task {
 
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
-        Notification_task that = (Notification_task) object;
+        NotificationTask that = (NotificationTask) object;
         return Objects.equals(id, that.id) && Objects.equals(chatId, that.chatId) && Objects.equals(text, that.text) && Objects.equals(dataTime, that.dataTime);
     }
 
@@ -80,7 +80,7 @@ public class Notification_task {
 
     @Override
     public String toString() {
-        return "Notification_task{" +
+        return "NotificationTask{" +
                 "id=" + id +
                 ", chatId=" + chatId +
                 ", text='" + text + '\'' +
