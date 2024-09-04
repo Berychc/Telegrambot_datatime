@@ -1,4 +1,4 @@
-package pro.sky.telegrambot;
+package project.bot.telegrambot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
