@@ -109,17 +109,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     // Create commands for TelegramBot
 
     public void startCommand(long chatId, String userName) {
-        String text = "Добро пожаловать в бот , %s! \n" +
-                "\nЭти команды я использую!" +
-                "\n /help";
+        String text = "Добро пожаловать в бот! \n" +
+                "\nИспользуйте команду - /help для дальнейшей инструкции!";
 
         String formattedText = String.format(text, userName);
         sendMessage(chatId, formattedText);
     }
 
     public void helpCommand(long chatId) {
-        String text = "Справочная по информации команд " +
-                "\uD83D\uDC41\u200D\uD83D\uDDE8\n\n/start\n/help";
+        String text = "Чтобы поставить напоминание используйте шаблон :" +
+                "\n Пример - 22.06.2001 16:00 У вас день рождение " +
+                "\uD83D\uDC41\u200D\uD83D\uDDE8";
         sendMessage(chatId, text);
     }
 
